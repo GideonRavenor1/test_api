@@ -35,8 +35,7 @@ class TeaserModelViewSet(ModelViewSet):
     def status(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        teasers = serializer.update_statuses()
-        serializer.pay_for_work(teasers=teasers)
+        serializer.save()
         return Response(status=status.HTTP_200_OK, data={'status': 'Успешно'})
 
 

@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from src.teasers.models import Teaser, Category
+from src.wallets.models import Wallet
 
 User = get_user_model()
 
@@ -82,7 +83,6 @@ def test_change_statuses_with_author(api_client: APIClient) -> None:
 def test_change_statuses_with_admin(api_client: APIClient) -> None:
     teasers = Teaser.objects.all()
 
-    author = User.objects.select_related('wallet').filter(username='someone').first()
     admin = User.objects.create(username='fedor', password='test1993', role='admin')
     api_client.force_authenticate(user=admin)
     url = reverse('api:teasers-status')
@@ -91,9 +91,9 @@ def test_change_statuses_with_admin(api_client: APIClient) -> None:
         'teasers': [{'teaser_id': teaser.pk, 'status': teaser.STATUS.paid} for teaser in teasers]
     }
     response = api_client.post(url, data=json.dumps(data), content_type='application/json')
-    author.refresh_from_db()
+    balance = Wallet.available_objects.select_related('user').filter(user__username='someone').first().balance
     assert response.status_code == 200
-    assert author.wallet.balance == 1000
+    assert balance == 1000
 
 
 @pytest.mark.django_db
@@ -101,7 +101,6 @@ def test_change_statuses_with_admin_if_payed(api_client: APIClient) -> None:
     teasers = Teaser.objects.all()
     teasers.update(status='paid')
 
-    author = User.objects.select_related('wallet').filter(username='someone').first()
     admin = User.objects.create(username='fedor', password='test1993', role='admin')
     api_client.force_authenticate(user=admin)
     url = reverse('api:teasers-status')
@@ -110,6 +109,6 @@ def test_change_statuses_with_admin_if_payed(api_client: APIClient) -> None:
         'teasers': [{'teaser_id': teaser.pk, 'status': teaser.STATUS.paid} for teaser in teasers]
     }
     response = api_client.post(url, data=json.dumps(data), content_type='application/json')
-    author.refresh_from_db()
+    balance = Wallet.available_objects.select_related('user').filter(user__username='someone').first().balance
     assert response.status_code == 200
-    assert author.wallet.balance == 0
+    assert balance == 0

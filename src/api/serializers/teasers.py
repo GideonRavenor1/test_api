@@ -1,3 +1,4 @@
+from django.db import  transaction
 from rest_framework import serializers
 
 from src.teasers.models import Teaser, PAID, REFUSAL
@@ -30,8 +31,15 @@ class UpdateTeaserSerializer(serializers.Serializer):
 class SetTeaserStatusSerializer(serializers.Serializer):
     teasers = UpdateTeaserSerializer(many=True)
 
-    def update_statuses(self) -> list[Teaser]:
-        teasers_dict = {element['teaser_id']: element['status'] for element in self.validated_data['teasers']}
+    def create(self, validated_data) -> list[Teaser]:
+        with transaction.atomic():
+            teasers: list[Teaser] = self.update_statuses(validated_data=validated_data)
+            self.pay_for_work(teasers=teasers)
+        return teasers
+
+    @staticmethod
+    def update_statuses(validated_data: dict) -> list[Teaser]:
+        teasers_dict = {element['teaser_id']: element['status'] for element in validated_data['teasers']}
         found_teasers = (
             Teaser.objects.select_related('user')
             .prefetch_related('user__wallet')
@@ -53,7 +61,8 @@ class SetTeaserStatusSerializer(serializers.Serializer):
         Teaser.objects.bulk_update(teasers, fields=['status'])
         return teasers
 
-    def pay_for_work(self, teasers: list[Teaser]) -> None:
+    @staticmethod
+    def pay_for_work(teasers: list[Teaser]) -> None:
         wallets = []
         for teaser in teasers:
             if teaser.status != teaser.STATUS.paid:
@@ -62,7 +71,7 @@ class SetTeaserStatusSerializer(serializers.Serializer):
             wallet.transfer_amount()
             wallets.append(wallet)
 
-        Wallet.objects.bulk_update(wallets, fields=['balance'])
+        Wallet.available_objects.bulk_update(wallets, fields=['balance'])
 
 
 class ResponseUpdateTeaserSerializer(serializers.Serializer):
