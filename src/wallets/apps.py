@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class WalletConfig(AppConfig):
+class WalletsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'wallet'
+    name = 'src.wallets'
     verbose_name = 'Кошельки'

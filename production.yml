@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  postgresql:
+    restart: always
+    container_name: drf_db
+    image: postgres:15.1-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - drf_db_data:/var/lib/postgresql/data
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+
+  server:
+    restart: always
+    depends_on:
+      - postgresql
+    container_name: drf_server
+    image: tests/drf_server
+    build:
+      context: .
+      dockerfile: compose/server/Dockerfile
+    volumes:
+      - drf_static:/opt/test_api/static
+    command: bash -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput &&
+      gunicorn --bind 0.0.0.0:8000 --workers 3 config.wsgi:application"
+    expose:
+      - '8000'
+    env_file:
+      - .env
+    environment:
+      WAIT_HOSTS: ${POSTGRES_HOST}:${POSTGRES_PORT}
+
+  nginx:
+    restart: always
+    container_name: drf_nginx
+    image: nginx:1.22.0-alpine
+    depends_on:
+      - server
+    ports:
+      - '80:80'
+    volumes:
+      - ./compose/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - drf_static:/staticfiles
+
+volumes:
+  drf_db_data:
+  drf_static:
