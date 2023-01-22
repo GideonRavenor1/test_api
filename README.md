@@ -56,4 +56,4 @@ exit
 Следующие сервисы будут доступны по адресам:
 
 ## API
-1. http://localhost/api/swagger/
+1. /api/swagger/
