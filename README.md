@@ -21,8 +21,8 @@
 4. POSTGRES_USER=***ВАШЕ ИМЯ ПОЛЬЗОВАТЕЛЯ ОТ БД***
 5. POSTGRES_PASSWORD=***ВАШ ПАРОЛЬ ОТ БД***
 6. POSTGRES_DB=***ИМЯ БАЗЫ ДАННЫХ***
-7. POSTGRES_HOST=***ХОСТ, УКАЗАТЬ СЛУЖБУ БД,В НАШЕМ СЛУЧАЕ postgresql_db***
-8. POSTGRES_PORT=***Порт базы данный***
+7. POSTGRES_HOST=***ХОСТ, УКАЗАТЬ СЛУЖБУ БД,В НАШЕМ СЛУЧАЕ postgresql***
+8. POSTGRES_PORT=***Порт базы данных***
 
 Скачать docker: 
 1. Для [windows](https://docs.docker.com/desktop/windows/install/)
