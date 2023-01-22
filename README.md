@@ -1,3 +1,5 @@
+[![Test-api workflow](https://github.com/GideonRavenor1/test_api/actions/workflows/test_api_workflow.yml/badge.svg?branch=master)](https://github.com/GideonRavenor1/test_api/actions/workflows/test_api_workflow.yml)
+
 # Тестовое задание
 
 
