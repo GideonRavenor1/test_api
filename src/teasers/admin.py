@@ -14,7 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Teaser)
 class TeaserAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'category', 'status')
+    list_display = ('pk', 'title', 'user', 'category', 'status')
     list_editable = ('status',)
 
     def get_queryset(self, request: WSGIRequest) -> QuerySet:

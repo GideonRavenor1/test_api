@@ -2,7 +2,9 @@ from django.db import  transaction
 from rest_framework import serializers
 
 from src.teasers.models import Teaser, PAID, REFUSAL
+from src.teasers.services import UpdateTeaserStatusService
 from src.wallets.models import Wallet
+from src.wallets.services import UpdateWalletBalanceServices
 
 
 class TeaserSerializer(serializers.ModelSerializer):
@@ -33,45 +35,9 @@ class SetTeaserStatusSerializer(serializers.Serializer):
 
     def create(self, validated_data) -> list[Teaser]:
         with transaction.atomic():
-            teasers: list[Teaser] = self.update_statuses(validated_data=validated_data)
-            self.pay_for_work(teasers=teasers)
+            teasers: list[Teaser] = UpdateTeaserStatusService(validated_data=validated_data)()
+            UpdateWalletBalanceServices(teasers=teasers)()
         return teasers
-
-    @staticmethod
-    def update_statuses(validated_data: dict) -> list[Teaser]:
-        teasers_dict = {element['teaser_id']: element['status'] for element in validated_data['teasers']}
-        found_teasers = (
-            Teaser.objects.select_related('user')
-            .prefetch_related('user__wallet')
-            .filter(id__in=teasers_dict.keys())
-        )
-
-        teasers = []
-        for teaser in found_teasers:
-
-            if teaser.pk not in teasers_dict:
-                continue
-
-            if teaser.status != teaser.STATUS.undefined:
-                continue
-
-            teaser.status = teasers_dict[teaser.pk]
-            teasers.append(teaser)
-
-        Teaser.objects.bulk_update(teasers, fields=['status'])
-        return teasers
-
-    @staticmethod
-    def pay_for_work(teasers: list[Teaser]) -> None:
-        wallets = []
-        for teaser in teasers:
-            if teaser.status != teaser.STATUS.paid:
-                continue
-            wallet: Wallet = teaser.user.wallet
-            wallet.transfer_amount()
-            wallets.append(wallet)
-
-        Wallet.available_objects.bulk_update(wallets, fields=['balance'])
 
 
 class ResponseUpdateTeaserSerializer(serializers.Serializer):

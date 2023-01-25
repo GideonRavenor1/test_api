@@ -34,4 +34,4 @@ class Wallet(TimeStampedModel, SoftDeletableModel):
         return f'Wallet({self.user=}, {self.balance=}, {self.fixed_price=})'
 
     def transfer_amount(self) -> None:
-        self.balance += self.fixed_price
+        self.balance = models.F('balance') + models.F('fixed_price')
