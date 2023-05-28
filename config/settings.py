@@ -4,7 +4,7 @@ import environ
 
 from pathlib import Path
 
-env = environ.Env(DEBUG=(bool, False))
+env = environ.Env(DJANGO_DEBUG=(bool, False))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,7 +12,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = env.str('DJANGO_SECRET_KEY', 'default-secret-key')
 
-DEBUG = env.bool('DJANGO_DEBUG', False)
+DEBUG = env.bool('DJANGO_DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
